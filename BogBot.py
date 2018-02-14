@@ -20,7 +20,7 @@ class BogBot():
 
     def rcv_clean_txt(self):
         #text = self.s.recv(2040)
-        text = b'#:smokeless!~smokeless@c-24-23-128-114.hsd1.ca.comcast.net PRIVMSG ##randononsense :hello'
+        text = b'#:someguys!~someguy@127.0.0.1 PRIVMSG ##randononsense :hello'
         #Need to parse this out.
         #Currently looks like: #randononsense :I've got my network code working.
         #Should look like: #nick@channel: I've got my network code working.
@@ -29,7 +29,7 @@ class BogBot():
         return clean
 
     def __process_txt(self, txt):
-        #:smokeless!~smokeless@c-24-23-128-114.hsd1.ca.comcast.net PRIVMSG ##randononsense :hello
+        #:someguy!~someguy@127.0.0.1 PRIVMSG ##randononsense :hello
         #todo make this not some ugly nightmare in formatting txt.
         textTuple =  txt.partition(b'!')
         userV     = textTuple[0].decode().strip('#:')
