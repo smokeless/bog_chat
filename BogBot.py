@@ -1,5 +1,9 @@
 import socket
-import re
+#todo: Implement command listening.
+#todo: command for who is playing
+#todo: command for gear info last seen
+#todo: command chat to eotl
+
 
 class BogBot():
 
@@ -8,7 +12,7 @@ class BogBot():
         self.channel = '##randononsense'
         self.nick    = 'BogBot'
         self.text    = ''
-        #self.connect()
+        self.connect()
 
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,27 +23,30 @@ class BogBot():
         self.s.send('JOIN {0} {1}'.format(self.channel, '\n').encode('utf-8'))
 
     def rcv_clean_txt(self):
-        #text = self.s.recv(2040)
-        text = b'#:someguys!~someguy@127.0.0.1 PRIVMSG ##randononsense :hello'
-        #Need to parse this out.
-        #Currently looks like: #randononsense :I've got my network code working.
-        #Should look like: #nick@channel: I've got my network code working.
-        #moved to process txt function
-        clean = self.__process_txt(text)
-        return clean
+        text = self.s.recv(2040)
+
+        return self.__process_txt(text)
 
     def __process_txt(self, txt):
         #:someguy!~someguy@127.0.0.1 PRIVMSG ##randononsense :hello
         #todo make this not some ugly nightmare in formatting txt.
-        textTuple =  txt.partition(b'!')
-        userV     = textTuple[0].decode().strip('#:')
-        textTuple = txt.partition(b'##')
-        channelV  = textTuple[-1].decode()
-        channelV  = channelV.split(':')
-        channelV  = channelV[0]
-        print(textTuple)
-        print(userV)
-        print(channelV)
+        userV    = ''
+        channelV = ''
+        chatV    = ''
+        try:
+            textTuple =  txt.partition(b'!')
+            userV     = textTuple[0].decode().strip('#:')
+            textTuple = txt.partition(b'##')
+            channelV  = textTuple[-1].decode()
+            channelV  = channelV.split(':')
+            chatV     = channelV[1].strip()
+            channelV  = channelV[0].strip()
+
+            return '{0}@{1}: {2}'.format(userV, channelV, chatV)
+        except:
+            return txt
+
 
 bot = BogBot()
-bot.rcv_clean_txt()
+while True:
+    print(bot.rcv_clean_txt())
