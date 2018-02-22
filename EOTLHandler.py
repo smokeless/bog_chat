@@ -1,4 +1,5 @@
 import telnetlib
+
 import re
 #todo maybe implement in raw sockets would be better?
 #todo this seems fine, let's use regex for our first channel.
@@ -27,11 +28,11 @@ class EOTLHandler(telnetlib.Telnet):
     def __read(self):
         print('Establishing the loop.')
         while True:
-            text = self.read_eager()
+            text = self.read_eager().strip()
             if text == b'':
                 pass
             else:
-                print(text)
+                self.__parse_txt(text)
 
     def __parse_txt(self, text:b''):
         #todo Maybe change this to regex.
@@ -41,14 +42,14 @@ class EOTLHandler(telnetlib.Telnet):
         groupChannelTag = b'(Group)'
 
         if text[0:len(newbieChannelTag)] == newbieChannelTag:
-            print('newbie')
+            print(text)
         elif text[0:len(groupChannelTag)] == groupChannelTag:
             print('group')
             textTuple = text.partition(b':') #split the text up
             cleanGroup = textTuple[0].split()#split it up more.
             charName = cleanGroup[1].strip() #extract charname
             message = textTuple[-1].strip()  #extract message.
-            print(charName, message)
+            print(self.format_message([charName, b'Group', message]))
 
     def format_message(self, textIn:list)->str:
         '''
@@ -57,6 +58,8 @@ class EOTLHandler(telnetlib.Telnet):
         :return:
         '''
         #todo maybe byte string? Think about this stuff.
-        clean = '{0}@eotl.org::{1}:: {2}'.format(textIn[0], textIn[1], textIn[2])
+        clean = '{0}@eotl.org::{1}:: {2}'.format(textIn[0].decode(), textIn[1].decode(), textIn[2].decode())
+        return clean
 
 handler = EOTLHandler()
+handler.__parse_txt('((Newbie)) Barrow: Hello.')
