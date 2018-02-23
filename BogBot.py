@@ -49,5 +49,4 @@ class BogBot():
     def send_txt(self, text:str):
         toSend = text.encode('utf-8')
         formatted = b'PRIVMSG ' + self.channel.encode('utf-8') + b' ' + b':' + toSend + b'\n'
-        print(formatted)
         self.s.send(formatted)

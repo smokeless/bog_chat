@@ -1,21 +1,17 @@
 import telnetlib
 
-import re
-#todo maybe implement in raw sockets would be better? yep.
-#todo this seems fine, let's use regex for our first channel.
-#todo once one channel is implemented the rest should fall right into place.
+#todo maybe implement in raw sockets would be better?
 
 #What we're looking for:
 #(Group) Helig has been invited to join the group.
 #Seneo clambers onto its feet. This gives us the person to look at.
 #((Newbie)) Bogbot: so where's the main idle hangout?
-class EOTLHandler():
+class EOTLHandler(telnetlib.Telnet):
     def __init__(self, botName='bogbot'):
         super().__init__('127.0.0.1', '2010')
         self.botName  = botName
         self.password = input('Password: ')
         self.__login()
-        self.read()
 
     def __login(self):
         self.read_until(b'Login:')
@@ -37,7 +33,6 @@ class EOTLHandler():
             return(self.__parse_txt(text))
 
     def __parse_txt(self, text: b''):
-        # todo Maybe change this to regex.
         # todo Refactor this section.
         name = self.botName  # so we can sort out or own messages?
         newbieChannelTag = b'((Newbie))'
@@ -48,14 +43,14 @@ class EOTLHandler():
             cleanGroup = textTuple[0].split()  # split it up more.
             charName = cleanGroup[1].strip()  # extract charname
             message = textTuple[-1].strip()  # extract message.
-            print(self.format_message([charName, b'Newbie', message]))
+            return self.format_message([charName, b'Newbie', message])
 
         elif text[0:len(groupChannelTag)] == groupChannelTag:
             textTuple = text.partition(b':')  # split the text up
             cleanGroup = textTuple[0].split()  # split it up more.
             charName = cleanGroup[1].strip()  # extract charname
             message = textTuple[-1].strip()  # extract message.
-            print(self.format_message([charName, b'Group', message]))
+            return self.format_message([charName, b'Group', message])
         else:
             pass
 
@@ -68,3 +63,6 @@ class EOTLHandler():
         #todo maybe byte string? Think about this stuff.
         clean = '{0}@eotl.org*{1}* {2}'.format(textIn[0].decode(), textIn[1].decode(), textIn[2].decode())
         return clean
+
+    def send_message(self, text):
+        self.write(text.encode() + b'\n')
