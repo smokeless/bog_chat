@@ -1,7 +1,7 @@
 import telnetlib
 
 import re
-#todo maybe implement in raw sockets would be better?
+#todo maybe implement in raw sockets would be better? yep.
 #todo this seems fine, let's use regex for our first channel.
 #todo once one channel is implemented the rest should fall right into place.
 
@@ -9,13 +9,13 @@ import re
 #(Group) Helig has been invited to join the group.
 #Seneo clambers onto its feet. This gives us the person to look at.
 #((Newbie)) Bogbot: so where's the main idle hangout?
-class EOTLHandler(telnetlib.Telnet):
+class EOTLHandler():
     def __init__(self, botName='bogbot'):
         super().__init__('127.0.0.1', '2010')
         self.botName  = botName
         self.password = input('Password: ')
         self.__login()
-        self.__read()
+        self.read()
 
     def __login(self):
         self.read_until(b'Login:')
@@ -24,32 +24,40 @@ class EOTLHandler(telnetlib.Telnet):
         self.read_until(b'Password:')
         print('Sending password.')
         self.write(self.password.encode('utf-8')+'\n'.encode('utf-8'))
+        self.write(b'tell grouper invite\n')
+        self.write(b'group accept\n')
 
-    def __read(self):
-        print('Establishing the loop.')
-        while True:
-            text = self.read_eager().strip()
-            if text == b'':
-                pass
-            else:
-                self.__parse_txt(text)
+    def read(self):
+        text = self.read_until(b'\n').strip()
+        if text == b'':
+            pass
+        elif text is None:
+            pass
+        else:
+            return(self.__parse_txt(text))
 
-    def __parse_txt(self, text:b''):
-        #todo Maybe change this to regex.
-        #todo Refactor this section.
-        name = self.botName #so we can sort out or own messages?
+    def __parse_txt(self, text: b''):
+        # todo Maybe change this to regex.
+        # todo Refactor this section.
+        name = self.botName  # so we can sort out or own messages?
         newbieChannelTag = b'((Newbie))'
         groupChannelTag = b'(Group)'
 
         if text[0:len(newbieChannelTag)] == newbieChannelTag:
-            print(text)
+            textTuple = text.partition(b':')  # split the text up
+            cleanGroup = textTuple[0].split()  # split it up more.
+            charName = cleanGroup[1].strip()  # extract charname
+            message = textTuple[-1].strip()  # extract message.
+            print(self.format_message([charName, b'Newbie', message]))
+
         elif text[0:len(groupChannelTag)] == groupChannelTag:
-            print('group')
-            textTuple = text.partition(b':') #split the text up
-            cleanGroup = textTuple[0].split()#split it up more.
-            charName = cleanGroup[1].strip() #extract charname
-            message = textTuple[-1].strip()  #extract message.
+            textTuple = text.partition(b':')  # split the text up
+            cleanGroup = textTuple[0].split()  # split it up more.
+            charName = cleanGroup[1].strip()  # extract charname
+            message = textTuple[-1].strip()  # extract message.
             print(self.format_message([charName, b'Group', message]))
+        else:
+            pass
 
     def format_message(self, textIn:list)->str:
         '''
@@ -58,8 +66,5 @@ class EOTLHandler(telnetlib.Telnet):
         :return:
         '''
         #todo maybe byte string? Think about this stuff.
-        clean = '{0}@eotl.org::{1}:: {2}'.format(textIn[0].decode(), textIn[1].decode(), textIn[2].decode())
+        clean = '{0}@eotl.org*{1}* {2}'.format(textIn[0].decode(), textIn[1].decode(), textIn[2].decode())
         return clean
-
-handler = EOTLHandler()
-handler.__parse_txt('((Newbie)) Barrow: Hello.')

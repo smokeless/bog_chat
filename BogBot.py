@@ -12,19 +12,19 @@ class BogBot():
         self.channel = '##randononsense'
         self.nick    = 'BogBot'
         self.text    = ''
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect()
 
     def connect(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print('Firing up the stuff.')
         self.s.connect((self.server, 6667))
         self.s.send("USER {0} {1} {2} :Bogleg!\n".format(self.nick, self.nick, self.nick).encode('utf-8'))
         self.s.send('NICK {0} {1}'.format(self.nick, '\n').encode('utf-8'))
         self.s.send('JOIN {0} {1}'.format(self.channel, '\n').encode('utf-8'))
+        print('All fired.')
 
     def rcv_clean_txt(self):
         text = self.s.recv(2040)
-
         return self.__process_txt(text)
 
     def __process_txt(self, txt):
@@ -46,7 +46,8 @@ class BogBot():
         except:
             return txt
 
-
-bot = BogBot()
-while True:
-    print(bot.rcv_clean_txt())
+    def send_txt(self, text:str):
+        toSend = text.encode('utf-8')
+        formatted = b'PRIVMSG ' + self.channel.encode('utf-8') + b' ' + b':' + toSend + b'\n'
+        print(formatted)
+        self.s.send(formatted)
