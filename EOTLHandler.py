@@ -65,4 +65,4 @@ class EOTLHandler(telnetlib.Telnet):
         return clean
 
     def send_message(self, text):
-        self.write(text.encode() + b'\n')
+        self.write(text + b'\n')
